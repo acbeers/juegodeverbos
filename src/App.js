@@ -26,7 +26,7 @@ function App() {
   const [gamePos, setGamePos] = useState(0);
   const [answer, setAnswer] = useState("");
   const [answering, setAnswering] = useState(true);
-  const [response, setResponse] = useState("");
+  const [response, setResponse] = useState(null);
   const [numCorrect, setNumCorrect] = useState(0);
 
   // Load our verbs on startup.
@@ -75,11 +75,13 @@ function App() {
     const ans = verb.tenses[tense].words[step.person].word;
     const correct = ans === str;
     const dcorrect = deaccent(ans) === str;
-    if (correct) setResponse("Correct!");
-    else if (dcorrect) setResponse(`Correct, but watch your accents: ${ans}`);
-    else {
-      setResponse(`Not correct.  The correct answer is ${ans}`);
-    }
+    const resp = {
+      correct: correct || dcorrect,
+      accents: dcorrect && !correct,
+      irregular: verb.tenses[tense].words[step.person].irregular,
+      ans: ans,
+    };
+    setResponse(resp);
     if (correct || dcorrect) setNumCorrect(numCorrect + 1);
     setAnswering(false);
   };
@@ -88,13 +90,13 @@ function App() {
     setAnswer("");
     setGamePos(gamePos + 1);
     setAnswering(true);
-    setResponse("");
+    setResponse(null);
   };
 
   const restart = () => {
     makeGameData();
     setAnswering(true);
-    setResponse("");
+    setResponse(null);
     setNumCorrect(0);
   };
 
@@ -109,6 +111,26 @@ function App() {
   const step = gameData[gamePos];
   const verb = verbs[step.index];
   const tense = tenses[step.tense];
+
+  let respMsg = "";
+  if (response) {
+    const cls = response.correct ? "correct" : "incorrect";
+    const msg = response.correct ? "Correct!" : "Incorrect!";
+    const submsg = response.accents
+      ? `But watch your accents: ${response.ans}`
+      : response.correct
+      ? ""
+      : `The correct answer is ${response.ans}`;
+    const irreg = response.irregular ? "This is an irregular form!" : "";
+    respMsg = (
+      <div>
+        <div>
+          <span className={cls}>{msg}</span> <span>{submsg}</span>
+        </div>
+        <div>{irreg}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
@@ -137,7 +159,7 @@ function App() {
             }}
           />
         </Typography>
-        <Typography>{response}</Typography>
+        <div>{respMsg}</div>
       </Card>
     </div>
   );

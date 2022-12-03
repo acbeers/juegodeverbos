@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from bs4 import BeautifulSoup
 
 import requests
@@ -32,7 +33,7 @@ for verb in verbs:
     # Now, find all tense_headings, which will be the start of our row.
     headings = indicative.find_all("td","tense_heading")
 
-    res = {"verb":verb, "tenses":[]}
+    res = {"verb":verb, "tenses":{}}
 
     # Find an image file
     if os.path.exists(f"public/images/{verb}.png"):
@@ -48,15 +49,20 @@ for verb in verbs:
         link = heading.find("a")
         tense = link.contents[0]
         # Find all conjugations
-        conjs = row.find_all("td","conjugation")
-        # Drop the english one
-        conjs = conjs[1:]
+        def matcher(tag):
+            """Match tds with a certain set of CSS classes"""
+            if tag.name != "td":
+                return False 
+            clss = tag.get("class",[])
+            return ("conjugation" in clss) and not ("english" in clss)
+        conjs = row.find_all(matcher)
+
+        assert(len(conjs)==6)
 
         o = {
-            "tense":tense,
             "words": [ {"word":x.string.strip(), "irregular":("irregular" in x['class'])} for x in conjs]
         }
-        res['tenses'].append(o)
+        res['tenses'][tense] = o
 
     all.append(res)
 

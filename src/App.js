@@ -31,8 +31,7 @@ function App() {
 
   // Load our verbs on startup.
   useEffect(() => {
-    console.log("fetching");
-    fetch("http://localhost:3001/verbs.json")
+    fetch("verbs.json")
       .then((resp) => resp.json())
       .then((data) => {
         setVerbs(data);
@@ -118,11 +117,7 @@ function App() {
           {gamePos + 1}/{gameLength}
         </Typography>
         <Typography variant="h5">
-          <img
-            title={verb.verb}
-            alt={verb.verb}
-            src={`/images/${verb.image}`}
-          />
+          <img title={verb.verb} alt={verb.verb} src={`images/${verb.image}`} />
         </Typography>
         <Typography sx={{ verticalAlign: "bottom" }} variant="h5">
           {personPrompts[step.person]}{" "}

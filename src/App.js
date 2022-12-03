@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Typography, TextField } from "@mui/material";
+import {
+  Button,
+  Card,
+  Typography,
+  TextField,
+  Container,
+  Box,
+} from "@mui/material";
 import "./App.css";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const personPrompts = [
   "Yo",
@@ -18,6 +26,8 @@ const allowedTenses = [
   "Future",
   "Conditional",
 ];
+
+const theme = createTheme();
 
 function App() {
   const [verbs, setVerbs] = useState([]);
@@ -55,6 +65,7 @@ function App() {
 
   useEffect(() => {
     makeGameData();
+    // eslint-disable-next-line
   }, [verbs, tenses]);
 
   if (gameData.length === 0 || verbs.length === 0) {
@@ -71,7 +82,7 @@ function App() {
       .replace("ñ", "n");
   };
 
-  const handleInput = (str) => {
+  const handleInput = (str, verb, tense, step) => {
     const ans = verb.tenses[tense].words[step.person].word;
     const correct = ans === str;
     const dcorrect = deaccent(ans) === str;
@@ -100,40 +111,44 @@ function App() {
     setNumCorrect(0);
   };
 
-  if (gamePos >= gameLength)
-    return (
+  let game = "";
+  if (gamePos >= gameLength) {
+    game = (
       <div className="App">
-        Game finished. You got {numCorrect} correct.
-        <Button onClick={restart}>Start again</Button>
-      </div>
-    );
-
-  const step = gameData[gamePos];
-  const verb = verbs[step.index];
-  const tense = tenses[step.tense];
-
-  let respMsg = "";
-  if (response) {
-    const cls = response.correct ? "correct" : "incorrect";
-    const msg = response.correct ? "Correct!" : "Incorrect!";
-    const submsg = response.accents
-      ? `But watch your accents: ${response.ans}`
-      : response.correct
-      ? ""
-      : `The correct answer is ${response.ans}`;
-    const irreg = response.irregular ? "This is an irregular form!" : "";
-    respMsg = (
-      <div>
+        <div>Game finished. You got {numCorrect} correct.</div>
         <div>
-          <span className={cls}>{msg}</span> <span>{submsg}</span>
+          <Button onClick={restart} variant="contained">
+            Start again
+          </Button>
         </div>
-        <div>{irreg}</div>
       </div>
     );
-  }
+  } else {
+    const step = gameData[gamePos];
+    const verb = verbs[step.index];
+    const tense = tenses[step.tense];
 
-  return (
-    <div className="App">
+    let respMsg = "";
+    if (response) {
+      const cls = response.correct ? "correct" : "incorrect";
+      const msg = response.correct ? "Correct!" : "Incorrect!";
+      const submsg = response.accents
+        ? `But watch your accents: ${response.ans}`
+        : response.correct
+        ? ""
+        : `The correct answer is ${response.ans}`;
+      const irreg = response.irregular ? "This is an irregular form!" : "";
+      respMsg = (
+        <div>
+          <div>
+            <span className={cls}>{msg}</span> <span>{submsg}</span>
+          </div>
+          <div>{irreg}</div>
+        </div>
+      );
+    }
+
+    game = (
       <Card sx={{ maxWidth: 500 }}>
         <Typography variant="h5">
           {gamePos + 1}/{gameLength}
@@ -152,7 +167,7 @@ function App() {
             onChange={(evt) => setAnswer(evt.target.value)}
             onKeyPress={(ev) => {
               if (ev.key === "Enter") {
-                if (answering) handleInput(ev.target.value);
+                if (answering) handleInput(ev.target.value, verb, tense, step);
                 else handleNext();
                 ev.preventDefault();
               }
@@ -161,7 +176,38 @@ function App() {
         </Typography>
         <div>{respMsg}</div>
       </Card>
-    </div>
+    );
+  }
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Box
+        sx={{
+          bgcolor: "background.paper",
+          pt: 8,
+          pb: 6,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Typography
+            component="h1"
+            variant="h3"
+            align="center"
+            color="text.primary"
+            gutterBottom
+          >
+            Juego de los verbos
+          </Typography>
+          <Typography
+            variant="h6"
+            align="center"
+            color="text.secondary"
+            paragraph
+          ></Typography>
+          <div className="App">{game}</div>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }
 

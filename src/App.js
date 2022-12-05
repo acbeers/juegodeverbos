@@ -10,13 +10,19 @@ import {
 import "./App.css";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
+import {
+  CorrectResponse,
+  IncorrectResponse,
+  AccentResponse,
+} from "./Responses";
+
 const personPrompts = [
   "Yo",
   "Tú",
-  "El/ella/usted",
+  "Él/ella/usted",
   "Nosotros",
   "Vosotros",
-  "Ellos,ellas/ustedes",
+  "Ellos/ellas/ustedes",
 ];
 
 const allowedTenses = [
@@ -27,16 +33,32 @@ const allowedTenses = [
   "Conditional",
 ];
 
+// Spanish names for extracted tense names, which are in English.
+const tenseNames = {
+  Present: "Presente",
+  Imperfect: "Pretérito imperfecto",
+  Preterite: "Pretérito perfecto",
+  Future: "Futuro",
+  Conditional: "Condicional",
+};
+
 const theme = createTheme();
 
 function App() {
+  // Allowed verbs and tenses, set once
   const [verbs, setVerbs] = useState([]);
   const [tenses, setTenses] = useState([]);
+  // Generated random game data, set for each game.
   const [gameData, setGameData] = useState([]);
+  // The current position within the game.
   const [gamePos, setGamePos] = useState(0);
+  // The answer that the user typed
   const [answer, setAnswer] = useState("");
+  // Whether we are answering (true) or displaying a repsonse (false)
   const [answering, setAnswering] = useState(true);
+  // The response to the user's answer, as an object
   const [response, setResponse] = useState(null);
+  // The number of correct responses in the current game.
   const [numCorrect, setNumCorrect] = useState(0);
 
   // Load our verbs on startup.
@@ -63,6 +85,8 @@ function App() {
     setGamePos(0);
   };
 
+  // When the verbs or tenses change, make a new set of game data.
+  // This essentially happens only after the verbs are loaded.
   useEffect(() => {
     makeGameData();
     // eslint-disable-next-line
@@ -72,6 +96,7 @@ function App() {
     return <div>nothing</div>;
   }
 
+  // Replace accented letters with unaccented equivalents
   const deaccent = (str) => {
     return str
       .replace("á", "a")
@@ -130,22 +155,10 @@ function App() {
 
     let respMsg = "";
     if (response) {
-      const cls = response.correct ? "correct" : "incorrect";
-      const msg = response.correct ? "Correct!" : "Incorrect!";
-      const submsg = response.accents
-        ? `But watch your accents: ${response.ans}`
-        : response.correct
-        ? ""
-        : `The correct answer is ${response.ans}`;
-      const irreg = response.irregular ? "This is an irregular form!" : "";
-      respMsg = (
-        <div>
-          <div>
-            <span className={cls}>{msg}</span> <span>{submsg}</span>
-          </div>
-          <div>{irreg}</div>
-        </div>
-      );
+      if (response.correct) respMsg = <CorrectResponse />;
+      else if (response.accents)
+        respMsg = <AccentResponse response={response} />;
+      else respMsg = <IncorrectResponse response={response} />;
     }
 
     game = (
@@ -162,7 +175,7 @@ function App() {
             variant="filled"
             size="small"
             hiddenLabel
-            helperText={tense}
+            helperText={tenseNames[tense]}
             value={answer}
             onChange={(evt) => setAnswer(evt.target.value)}
             onKeyPress={(ev) => {

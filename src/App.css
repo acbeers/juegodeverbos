@@ -43,3 +43,7 @@ span.correct {
 span.incorrect {
   color: red;
 }
+
+.irregular {
+  font-style: italic;
+}

@@ -251,9 +251,9 @@ function App() {
           ></Typography>
           <div className="App">{game}</div>
           <div className="help">
-            Nota: para usar los accentos, apunta "'", "~", o ":" antes de una
-            letra para incluir un accento. Por ejemplo, escribe "'a" para
-            obtener "á".{" "}
+            Nota: para usar los acentos, apunta "'", "~", o ":" antes de una
+            letra para incluir un acento. Por ejemplo, escribe "'a" para obtener
+            "á".{" "}
           </div>
         </Container>
       </Box>

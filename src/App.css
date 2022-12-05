@@ -47,3 +47,7 @@ span.incorrect {
 .irregular {
   font-style: italic;
 }
+
+p.MuiFormHelperText-sizeSmall {
+  font-size: 12pt;
+}

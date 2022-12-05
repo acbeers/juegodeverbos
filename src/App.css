@@ -43,3 +43,11 @@ span.correct {
 span.incorrect {
   color: red;
 }
+
+.irregular {
+  font-style: italic;
+}
+
+p.MuiFormHelperText-sizeSmall {
+  font-size: 12pt;
+}

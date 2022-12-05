@@ -51,3 +51,8 @@ span.incorrect {
 p.MuiFormHelperText-sizeSmall {
   font-size: 12pt;
 }
+
+.help {
+  color: #aaa;
+  font-size: 10pt;
+}

@@ -136,6 +136,38 @@ function App() {
     setNumCorrect(0);
   };
 
+  // Helper function that will look for text like 'e and replace with
+  // an accented version é
+  const handleAccents = (str) => {
+    if (str.length < 2) return str;
+    const end = str.slice(str.length - 2);
+    const accents = {
+      "'": {
+        a: "á",
+        e: "é",
+        i: "í",
+        o: "ó",
+        u: "ú",
+      },
+      "`": {
+        a: "á",
+        e: "é",
+        i: "í",
+        o: "ó",
+        u: "ú",
+      },
+      "~": {
+        n: "ñ",
+      },
+      ":": {
+        u: "ü",
+      },
+    };
+    if (end[0] in accents && end[1] in accents[end[0]])
+      return str.slice(0, str.length - 2) + accents[end[0]][end[1]];
+    return str;
+  };
+
   let game = "";
   if (gamePos >= gameLength) {
     game = (
@@ -177,7 +209,7 @@ function App() {
             hiddenLabel
             helperText={tenseNames[tense]}
             value={answer}
-            onChange={(evt) => setAnswer(evt.target.value)}
+            onChange={(evt) => setAnswer(handleAccents(evt.target.value))}
             onKeyPress={(ev) => {
               if (ev.key === "Enter") {
                 if (answering) handleInput(ev.target.value, verb, tense, step);
@@ -218,6 +250,11 @@ function App() {
             paragraph
           ></Typography>
           <div className="App">{game}</div>
+          <div className="help">
+            Nota: para usar los accentos, apunta "'", "~", o ":" antes de una
+            letra para incluir un accento. Por ejemplo, escribe "'a" para
+            obtener "á".{" "}
+          </div>
         </Container>
       </Box>
     </ThemeProvider>

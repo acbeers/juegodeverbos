@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import "./App.css";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import queryString from "query-string";
 
 import {
   CorrectResponse,
@@ -41,6 +42,14 @@ const tenseNames = {
   Future: "Futuro",
   Conditional: "Condicional",
 };
+
+// Add the trim method
+if (!String.prototype.trim) {
+  // eslint-disable-next-line
+  String.prototype.trim = function () {
+    return this.replace(/^\s+|\s+$/g, "");
+  };
+}
 
 const theme = createTheme();
 
@@ -88,7 +97,30 @@ function App() {
   // When the verbs or tenses change, make a new set of game data.
   // This essentially happens only after the verbs are loaded.
   useEffect(() => {
-    makeGameData();
+    // If we have some debug parameters, use that to make the game data
+    const queries = queryString.parse(window.location.search);
+    if (queries.verb) {
+      // Find the verb in the index
+      const index = verbs.findIndex((x) => x.verb === queries.verb);
+      // Find the tense in the list
+      console.log(tenses);
+      const tindex = tenses.findIndex((x) => x.toLowerCase() === queries.tense);
+      const data =
+        index === -1
+          ? []
+          : [
+              {
+                index: index,
+                person: queries.person,
+                tense: tindex,
+              },
+            ];
+      console.log(data);
+      setGameData(data);
+      setGamePos(0);
+    } else {
+      makeGameData();
+    }
     // eslint-disable-next-line
   }, [verbs, tenses]);
 
@@ -108,9 +140,11 @@ function App() {
   };
 
   const handleInput = (str, verb, tense, step) => {
+    // Strip whitespace.
+    const stripped = str.trim();
     const ans = verb.tenses[tense].words[step.person].word;
-    const correct = ans === str;
-    const dcorrect = deaccent(ans) === str;
+    const correct = ans === stripped;
+    const dcorrect = deaccent(ans) === stripped;
     const resp = {
       correct: correct || dcorrect,
       accents: dcorrect && !correct,
@@ -141,21 +175,20 @@ function App() {
   const handleAccents = (str) => {
     if (str.length < 2) return str;
     const end = str.slice(str.length - 2);
+    const graves = {
+      a: "á",
+      e: "é",
+      i: "í",
+      o: "ó",
+      u: "ú",
+    };
+    // The iPhone sends left and right single quotes rather than the simple
+    // single quote.
     const accents = {
-      "'": {
-        a: "á",
-        e: "é",
-        i: "í",
-        o: "ó",
-        u: "ú",
-      },
-      "`": {
-        a: "á",
-        e: "é",
-        i: "í",
-        o: "ó",
-        u: "ú",
-      },
+      "‘": graves,
+      "'": graves,
+      "`": graves,
+      "’": graves,
       "~": {
         n: "ñ",
       },
@@ -163,13 +196,13 @@ function App() {
         u: "ü",
       },
     };
-    if (end[0] in accents && end[1] in accents[end[0]])
-      return str.slice(0, str.length - 2) + accents[end[0]][end[1]];
+    if (end[1] in accents && end[0] in accents[end[1]])
+      return str.slice(0, str.length - 2) + accents[end[1]][end[0]];
     return str;
   };
 
   let game = "";
-  if (gamePos >= gameLength) {
+  if (gamePos >= gameData.length) {
     game = (
       <div className="App">
         <div>Game finished. You got {numCorrect} correct.</div>
@@ -187,16 +220,15 @@ function App() {
 
     let respMsg = "";
     if (response) {
-      if (response.correct) respMsg = <CorrectResponse />;
-      else if (response.accents)
-        respMsg = <AccentResponse response={response} />;
+      if (response.accents) respMsg = <AccentResponse response={response} />;
+      else if (response.correct) respMsg = <CorrectResponse />;
       else respMsg = <IncorrectResponse response={response} />;
     }
 
     game = (
       <Card sx={{ maxWidth: 500 }}>
         <Typography variant="h5">
-          {gamePos + 1}/{gameLength}
+          {gamePos + 1}/{gameData.length}
         </Typography>
         <Typography variant="h5">
           <img title={verb.verb} alt={verb.verb} src={`images/${verb.image}`} />
@@ -208,6 +240,7 @@ function App() {
             size="small"
             hiddenLabel
             helperText={tenseNames[tense]}
+            inputProps={{ autocorrect: "off", spellcheck: "off" }}
             value={answer}
             onChange={(evt) => setAnswer(handleAccents(evt.target.value))}
             onKeyPress={(ev) => {
@@ -220,6 +253,10 @@ function App() {
           />
         </Typography>
         <div>{respMsg}</div>
+        <div className="help">
+          Nota: para escribir los acentos, a’ = á, e’ = é, n~ = ñ, u: = ü. Por
+          ejemplo, escribe "a’" para obtener "á".
+        </div>
       </Card>
     );
   }
@@ -229,14 +266,14 @@ function App() {
       <Box
         sx={{
           bgcolor: "background.paper",
-          pt: 8,
-          pb: 6,
+          pt: 1,
+          pb: 1,
         }}
       >
         <Container maxWidth="sm">
           <Typography
-            component="h1"
-            variant="h3"
+            component="h4"
+            variant="h4"
             align="center"
             color="text.primary"
             gutterBottom
@@ -250,11 +287,6 @@ function App() {
             paragraph
           ></Typography>
           <div className="App">{game}</div>
-          <div className="help">
-            Nota: para usar los acentos, apunta "'", "~", o ":" antes de una
-            letra para incluir un acento. Por ejemplo, escribe "'a" para obtener
-            "á".{" "}
-          </div>
         </Container>
       </Box>
     </ThemeProvider>

@@ -54,5 +54,6 @@ p.MuiFormHelperText-sizeSmall {
 
 .help {
   color: #aaa;
-  font-size: 10pt;
+  font-size: 12pt;
+  margin: 5px 10px;
 }

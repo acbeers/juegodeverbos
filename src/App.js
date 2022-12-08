@@ -57,6 +57,8 @@ function App() {
   // Allowed verbs and tenses, set once
   const [verbs, setVerbs] = useState([]);
   const [tenses, setTenses] = useState([]);
+  // Whether or not to only use irregular forms!
+  const [onlyIrregular, setOnlyIrregular] = useState(false);
   // Generated random game data, set for each game.
   const [gameData, setGameData] = useState([]);
   // The current position within the game.
@@ -76,6 +78,9 @@ function App() {
       .then((resp) => resp.json())
       .then((data) => {
         setVerbs(data);
+        // Do we just want irregular verbs?
+        const queries = queryString.parse(window.location.search);
+        setOnlyIrregular(queries.irregular === "true");
         setTenses(allowedTenses);
       });
   }, []);
@@ -83,13 +88,29 @@ function App() {
   // Create a random set for a game.
   const gameLength = 20;
   const makeGameData = () => {
-    const data = [...Array(gameLength)].map(() => {
+    // Generate a lot of data, then filter down to just the irregular forms if
+    // that is what people want.  10x is probably enough to have gameLength
+    // entries pass through the filter.
+    let data = [...Array(gameLength * 10)].map(() => {
       return {
         index: Math.floor(Math.random() * verbs.length),
         person: Math.floor(Math.random() * 6),
         tense: Math.floor(Math.random() * tenses.length),
       };
     });
+    // Filter down to forms that are irregular if necessary
+    if (onlyIrregular) {
+      const filtered = data.filter((step) => {
+        const tense = tenses[step.tense];
+        const verb = verbs[step.index];
+        const irreg = verb.tenses[tense].words[step.person].irregular;
+        return irreg;
+      });
+      data = filtered;
+    }
+    // And grab at most gameLength
+    data = data.slice(0, gameLength);
+    console.log(data.length);
     setGameData(data);
     setGamePos(0);
   };
@@ -103,7 +124,6 @@ function App() {
       // Find the verb in the index
       const index = verbs.findIndex((x) => x.verb === queries.verb);
       // Find the tense in the list
-      console.log(tenses);
       const tindex = tenses.findIndex((x) => x.toLowerCase() === queries.tense);
       const data =
         index === -1
@@ -115,7 +135,6 @@ function App() {
                 tense: tindex,
               },
             ];
-      console.log(data);
       setGameData(data);
       setGamePos(0);
     } else {
@@ -240,7 +259,7 @@ function App() {
             size="small"
             hiddenLabel
             helperText={tenseNames[tense]}
-            inputProps={{ autocorrect: "off", spellcheck: "off" }}
+            inputProps={{ autoCorrect: "off", spellCheck: "off" }}
             value={answer}
             onChange={(evt) => setAnswer(handleAccents(evt.target.value))}
             onKeyPress={(ev) => {

@@ -191,9 +191,11 @@ function App() {
 
   // Helper function that will look for text like 'e and replace with
   // an accented version é
+  // It will also standardize to lower case.
   const handleAccents = (str) => {
     if (str.length < 2) return str;
-    const end = str.slice(str.length - 2);
+    const lstr = str.toLowerCase();
+    const end = lstr.slice(str.length - 2);
     const graves = {
       a: "á",
       e: "é",
@@ -216,20 +218,25 @@ function App() {
       },
     };
     if (end[1] in accents && end[0] in accents[end[1]])
-      return str.slice(0, str.length - 2) + accents[end[1]][end[0]];
-    return str;
+      return lstr.slice(0, str.length - 2) + accents[end[1]][end[0]];
+    return lstr;
   };
 
   let game = "";
   if (gamePos >= gameData.length) {
+    const perc = Math.floor((100 * numCorrect) / gameData.length);
     game = (
       <div className="App">
-        <div>Game finished. You got {numCorrect} correct.</div>
-        <div>
+        <Typography variant="h6">Fin del juego.</Typography>
+        <Typography variant="body">
+          Respuestas correctas: {numCorrect}/{gameData.length} ({perc}%)
+        </Typography>
+
+        <Typography component="p" variant="p" sx={{ pt: 2 }}>
           <Button onClick={restart} variant="contained">
-            Start again
+            Jugar de nuevo
           </Button>
-        </div>
+        </Typography>
       </div>
     );
   } else {

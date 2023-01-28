@@ -17,7 +17,7 @@ export function AccentResponse({ response }) {
   return (
     <div>
       <div>
-        <span className="correct">¡Casi Correcto!</span>&nbsp;
+        <span className="correct">¡Casi correcto!</span>&nbsp;
         <span>Pero, cuidado con los accentos: {response.ans} </span>
       </div>
       {irreg}

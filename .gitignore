@@ -27,4 +27,4 @@ cache
 
 # Data files
 public/*.json
-*.json
+verbs.json

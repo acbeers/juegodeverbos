@@ -24,3 +24,7 @@ yarn-error.log*
 
 # No caches of scraped data
 cache
+
+# Data files
+public/*.json
+verbs.json

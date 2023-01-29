@@ -9,7 +9,12 @@ import requests
 
 url = "https://www.123teachme.com/spanish_verb_conjugation/"
 
-verbs = ["caber","caer","calentar","cerrar","chocar","comenzar","competir","conocer","conducir","construir","costar","creer","dar","decir","divertir","dormir","empezar","encontrar","enfriar","entender","estar","haber","hacer","investigar","ir","jugar","leer","llegar","medir","morir","ofrecer","oír","pagar","pedir","pensar","perder","poder","poner","preferir","querer","recordar","reír","repetir","saber","salir","seguir","sentir","ser","servir","sonreír","tener","traducir","traer","valer","venir","ver","vestir","volar","volver"]
+verbs = []
+with open("verbs.txt") as fin:
+    verbs = fin.readlines()
+    verbs = [x.strip() for x in verbs]
+
+print(verbs)
 
 all = []
 for verb in verbs:

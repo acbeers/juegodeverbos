@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/juegodeverbos/static/css/main.4827e79c.css",
-    "main.js": "/juegodeverbos/static/js/main.006d0a36.js",
+    "main.js": "/juegodeverbos/static/js/main.9b188593.js",
     "static/js/787.b71a093d.chunk.js": "/juegodeverbos/static/js/787.b71a093d.chunk.js",
     "index.html": "/juegodeverbos/index.html",
     "main.4827e79c.css.map": "/juegodeverbos/static/css/main.4827e79c.css.map",
-    "main.006d0a36.js.map": "/juegodeverbos/static/js/main.006d0a36.js.map",
+    "main.9b188593.js.map": "/juegodeverbos/static/js/main.9b188593.js.map",
     "787.b71a093d.chunk.js.map": "/juegodeverbos/static/js/787.b71a093d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.4827e79c.css",
-    "static/js/main.006d0a36.js"
+    "static/js/main.9b188593.js"
   ]
 }

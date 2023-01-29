@@ -53,8 +53,6 @@ function App() {
   const [config, setConfig] = useState({});
   // Game options, set for each game
   const [options, setOptions] = useState({ tenses: [] });
-  // Whether or not to only use irregular forms!
-  const [onlyIrregular, setOnlyIrregular] = useState(false);
   // Generated random game data, set for each game.
   const [gameData, setGameData] = useState([]);
   // The current position within the game.
@@ -76,10 +74,6 @@ function App() {
       .then((resp) => resp.json())
       .then((data) => {
         setVerbs(data);
-        // Do we just want irregular verbs?
-        const queries = queryString.parse(window.location.search);
-        setOnlyIrregular(queries.irregular === "true");
-        //setTenses(allowedTenses);
       });
     fetch("games.json")
       .then((resp) => resp.json())
@@ -117,11 +111,10 @@ function App() {
       };
     });
     // Filter down to forms that are irregular if necessary
-    if (onlyIrregular) {
+    if (options.onlyIrregular) {
       const filtered = data.filter((step) => {
         const tense = options.tenses[step.tense];
-        const verb = selVerbs[step.index];
-        const irreg = verb.tenses[tense].words[step.person].irregular;
+        const irreg = step.verb.tenses[tense].words[step.person].irregular;
         return irreg;
       });
       data = filtered;

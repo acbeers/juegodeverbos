@@ -14,6 +14,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Typography,
   Box,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -43,6 +44,7 @@ export default function StartPage({ config, onStart }) {
   const [checks, setChecks] = useState(
     allTenses.map((tense) => config[allVerbs[0]].tenses.includes(tense))
   );
+  const [onlyIrregular, setOnlyIrregular] = useState(false);
 
   const handleCheck = (index) => {
     const newCheck = [...checks];
@@ -78,7 +80,11 @@ export default function StartPage({ config, onStart }) {
     const tenses = checks
       .map((x, idx) => (x ? allTenses[idx] : null))
       .filter((x) => x);
-    const opts = { tenses: tenses, verbs: config[verbs].verbs };
+    const opts = {
+      tenses: tenses,
+      verbs: config[verbs].verbs,
+      onlyIrregular: onlyIrregular,
+    };
     onStart(opts);
   };
   return (
@@ -90,14 +96,37 @@ export default function StartPage({ config, onStart }) {
           pb: 1,
         }}
       >
-        <FormControl variant="standard">
-          <InputLabel id="select">Groupo de verbos</InputLabel>
-          <Select labelId="select" onChange={handleSelect} value={verbs}>
-            {options}
-          </Select>
-        </FormControl>
         <Container maxWidth="sm">
+          <Typography align="left" variant="h6">
+            Groupo de verbos
+          </Typography>
+          <FormControl variant="standard">
+            <Select onChange={handleSelect} value={verbs}>
+              {options}
+            </Select>
+          </FormControl>
+        </Container>
+        <Container maxWidth="sm">
+          <Typography align="left" variant="h6">
+            Tiempos verbales
+          </Typography>
           <FormGroup>{tenses}</FormGroup>
+        </Container>
+        <Container maxWidth="sm">
+          <Typography align="left" variant="h6">
+            Opciones
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={onlyIrregular}
+                onClick={() => setOnlyIrregular(!onlyIrregular)}
+              />
+            }
+            label="Sólo formas irregulares"
+          />
+        </Container>
+        <Container maxWidth="sm">
           <Button variant="outlined" onClick={() => handleClick()}>
             Empieza
           </Button>

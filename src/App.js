@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import "./App.css";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import queryString from "query-string";
+import { tenseNames } from "./common";
 
 import {
   CorrectResponse,
@@ -26,15 +26,6 @@ const personPrompts = [
   "Vosotros",
   "Ellos/ellas/ustedes",
 ];
-
-// Spanish names for extracted tense names, which are in English.
-const tenseNames = {
-  Present: "Presente",
-  Imperfect: "Imperfecto",
-  Preterite: "Pretérito",
-  Future: "Futuro",
-  Conditional: "Condicional",
-};
 
 // Add the trim method
 if (!String.prototype.trim) {
@@ -70,12 +61,12 @@ function App() {
 
   // Load our verbs on startup.
   useEffect(() => {
-    fetch("verbs.json")
+    fetch("./verbs.json")
       .then((resp) => resp.json())
       .then((data) => {
         setVerbs(data);
       });
-    fetch("games.json")
+    fetch("./games.json")
       .then((resp) => resp.json())
       .then((data) => {
         setConfig(data);

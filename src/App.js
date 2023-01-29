@@ -16,6 +16,7 @@ import {
   IncorrectResponse,
   AccentResponse,
 } from "./Responses";
+import StartPage from "./StartPage";
 
 const personPrompts = [
   "Yo",
@@ -26,19 +27,11 @@ const personPrompts = [
   "Ellos/ellas/ustedes",
 ];
 
-const allowedTenses = [
-  "Present",
-  "Imperfect",
-  "Preterite",
-  "Future",
-  "Conditional",
-];
-
 // Spanish names for extracted tense names, which are in English.
 const tenseNames = {
   Present: "Presente",
-  Imperfect: "Pretérito imperfecto",
-  Preterite: "Pretérito perfecto",
+  Imperfect: "Imperfecto",
+  Preterite: "Pretérito",
   Future: "Futuro",
   Conditional: "Condicional",
 };
@@ -54,9 +47,12 @@ if (!String.prototype.trim) {
 const theme = createTheme();
 
 function App() {
-  // Allowed verbs and tenses, set once
+  // Allowed verbs, set once
   const [verbs, setVerbs] = useState([]);
-  const [tenses, setTenses] = useState([]);
+  // Game configuration, set once.
+  const [config, setConfig] = useState({});
+  // Game options, set for each game
+  const [options, setOptions] = useState({ tenses: [] });
   // Whether or not to only use irregular forms!
   const [onlyIrregular, setOnlyIrregular] = useState(false);
   // Generated random game data, set for each game.
@@ -71,6 +67,8 @@ function App() {
   const [response, setResponse] = useState(null);
   // The number of correct responses in the current game.
   const [numCorrect, setNumCorrect] = useState(0);
+  // The state of the current game
+  const [gameState, setGameState] = useState("initializing"); // starting, running, ended.
 
   // Load our verbs on startup.
   useEffect(() => {
@@ -81,28 +79,48 @@ function App() {
         // Do we just want irregular verbs?
         const queries = queryString.parse(window.location.search);
         setOnlyIrregular(queries.irregular === "true");
-        setTenses(allowedTenses);
+        //setTenses(allowedTenses);
+      });
+    fetch("games.json")
+      .then((resp) => resp.json())
+      .then((data) => {
+        setConfig(data);
+        setGameState("starting");
       });
   }, []);
 
   // Create a random set for a game.
   const gameLength = 20;
-  const makeGameData = () => {
+  const makeGameData = (options) => {
     // Generate a lot of data, then filter down to just the irregular forms if
     // that is what people want.  10x is probably enough to have gameLength
     // entries pass through the filter.
+    const verbMap = {};
+    verbs.forEach((verb) => (verbMap[verb.verb] = verb));
+    const selVerbs = options.verbs
+      .map((verb) => verbMap[verb])
+      .filter((x) => x);
     let data = [...Array(gameLength * 10)].map(() => {
+      const idx = Math.floor(Math.random() * selVerbs.length) % selVerbs.length;
+      if (!selVerbs[idx]) {
+        console.log("PROBLEM");
+        console.log(idx);
+        console.log(selVerbs.length);
+        console.log(selVerbs[idx]);
+        console.log(selVerbs);
+        console.log(options.verbs);
+      }
       return {
-        index: Math.floor(Math.random() * verbs.length),
+        verb: selVerbs[idx],
         person: Math.floor(Math.random() * 6),
-        tense: Math.floor(Math.random() * tenses.length),
+        tense: Math.floor(Math.random() * options.tenses.length),
       };
     });
     // Filter down to forms that are irregular if necessary
     if (onlyIrregular) {
       const filtered = data.filter((step) => {
-        const tense = tenses[step.tense];
-        const verb = verbs[step.index];
+        const tense = options.tenses[step.tense];
+        const verb = selVerbs[step.index];
         const irreg = verb.tenses[tense].words[step.person].irregular;
         return irreg;
       });
@@ -110,14 +128,15 @@ function App() {
     }
     // And grab at most gameLength
     data = data.slice(0, gameLength);
-    console.log(data.length);
     setGameData(data);
     setGamePos(0);
+    setOptions(options);
   };
 
   // When the verbs or tenses change, make a new set of game data.
   // This essentially happens only after the verbs are loaded.
   useEffect(() => {
+    /*
     // If we have some debug parameters, use that to make the game data
     const queries = queryString.parse(window.location.search);
     if (queries.verb) {
@@ -140,12 +159,9 @@ function App() {
     } else {
       makeGameData();
     }
+      */
     // eslint-disable-next-line
-  }, [verbs, tenses]);
-
-  if (gameData.length === 0 || verbs.length === 0) {
-    return <div>nothing</div>;
-  }
+  }, [verbs]);
 
   // Replace accented letters with unaccented equivalents
   const deaccent = (str) => {
@@ -180,10 +196,19 @@ function App() {
     setGamePos(gamePos + 1);
     setAnswering(true);
     setResponse(null);
+    if (gamePos + 1 >= gameData.length) {
+      setGameState("ended");
+    }
   };
 
   const restart = () => {
-    makeGameData();
+    setGameState("starting");
+  };
+
+  const start = (opts) => {
+    //setTenses(opts.tenses);
+    makeGameData(opts);
+    setGameState("running");
     setAnswering(true);
     setResponse(null);
     setNumCorrect(0);
@@ -223,7 +248,7 @@ function App() {
   };
 
   let game = "";
-  if (gamePos >= gameData.length) {
+  if (gameState === "ended") {
     const perc = Math.floor((100 * numCorrect) / gameData.length);
     game = (
       <div className="App">
@@ -239,10 +264,16 @@ function App() {
         </Typography>
       </div>
     );
-  } else {
+  } else if (gameState === "starting") {
+    game = (
+      <div className="App">
+        <StartPage config={config} onStart={start} />
+      </div>
+    );
+  } else if (gameState === "running" && gamePos < gameData.length) {
     const step = gameData[gamePos];
-    const verb = verbs[step.index];
-    const tense = tenses[step.tense];
+    const verb = step.verb;
+    const tense = options.tenses[step.tense];
 
     let respMsg = "";
     if (response) {
@@ -251,17 +282,25 @@ function App() {
       else respMsg = <IncorrectResponse response={response} />;
     }
 
+    let image = verb.image ? (
+      <img title={verb.verb} alt={verb.verb} src={`images/${verb.image}`} />
+    ) : (
+      <div style={{ display: "flex", alignItems: "center", height: "144px" }}>
+        <span style={{ display: "block", textAlign: "center", width: "100%" }}>
+          {verb.verb}
+        </span>
+      </div>
+    );
     game = (
       <Card sx={{ maxWidth: 500 }}>
         <Typography variant="h5">
           {gamePos + 1}/{gameData.length}
         </Typography>
-        <Typography variant="h5">
-          <img title={verb.verb} alt={verb.verb} src={`images/${verb.image}`} />
-        </Typography>
+        <Typography variant="h5">{image}</Typography>
         <Typography sx={{ verticalAlign: "bottom" }} variant="h5">
           {personPrompts[step.person]}{" "}
           <TextField
+            autoComplete="off"
             variant="filled"
             size="small"
             hiddenLabel

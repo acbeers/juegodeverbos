@@ -28,7 +28,6 @@
       "react-app/jest"
     ]
   },
-  "homepage": "juegodeverbos",
   "browserslist": {
     "production": [
       ">0.2%",
